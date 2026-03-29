@@ -108,7 +108,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 <div class="app">
-  <div class="sidebar" id="sidebar"><div class="sidebar-title">日誌</div></div>
+  <div class="sidebar" id="sidebar"><div class="sidebar-title">日誌</div><div class="day-btn has-data active" title="2026-03-29"><span>3/29</span></div></div>
   <div class="main">
 
     <div class="header">
@@ -122,14 +122,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <div class="child-bar">
       <div class="child-bar-label">孩子：</div>
-      <div class="child-tabs" id="child-tabs"><div class="child-tab active"><span>孩子1</span><button class="edit-btn" title="更改名字">✎</button></div></div>
+      <div class="child-tabs" id="child-tabs"><div class="child-tab active"><span>孩子1</span><button class="edit-btn" title="更改名字">✎</button></div><div class="child-tab"><span>孩子2</span><button class="edit-btn" title="更改名字">✎</button></div></div>
       <button class="add-child-btn" onclick="addChild()">＋ 新增孩子</button>
     </div>
 
     <div class="section">
       <div class="section-title">保健食品 / 藥物</div>
       <div class="field-label">今日有無補充（可多選）</div>
-      <div class="chips" id="chips-med"><div class="chip">魚油</div><div class="chip">GABA</div><div class="chip">鋅錠</div><div class="chip">綜合維他命</div></div>
+      <div class="chips" id="chips-med"><div class="chip selected">魚油</div><div class="chip">GABA</div><div class="chip">鋅錠</div><div class="chip">綜合維他命</div></div>
       <div class="add-chip-row">
         <input type="text" placeholder="新增補充品..." id="add-med-input">
         <button onclick="addGlobalOpt(&#39;med&#39;,&#39;add-med-input&#39;,refreshMed)">新增</button>
@@ -143,23 +143,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
 
     <div class="section">
-      <div class="section-title">放學狀況</div>
-      <div class="field-label">今天讀</div>
-      <div class="chips" id="chips-school-day"><div class="chip">整天</div><div class="chip">半天</div></div>
-      <div class="field-label">放學時的心情</div>
-      <div class="chips" id="chips-mood"><div class="chip">愉快</div><div class="chip">普通</div><div class="chip">不佳</div></div>
-      <div class="add-chip-row">
-        <input type="text" placeholder="新增心情..." id="add-mood-input">
-        <button onclick="addGlobalOpt(&#39;mood&#39;,&#39;add-mood-input&#39;,refreshMood)">新增</button>
+      <div class="section-title">今日紀錄</div>
+      <div class="field-label">今天</div>
+      <div class="chips" id="chips-school-day"><div class="chip selected">整天</div><div class="chip">半天</div><div class="chip">放假</div></div>
+
+      <div id="holiday-block" style="display:none">
+        <div class="field-label">今天的心情</div>
+        <div class="chips" id="chips-mood-holiday"><div class="chip">愉快</div><div class="chip selected">普通</div><div class="chip">不佳</div></div>
+        <div class="add-chip-row">
+          <input type="text" placeholder="新增心情..." id="add-mood-h-input">
+          <button onclick="addGlobalOpt(&#39;mood&#39;,&#39;add-mood-h-input&#39;,refreshMood)">新增</button>
+        </div>
       </div>
-      <div class="field-label">有沒有忘記帶東西</div>
-      <div class="chips" id="chips-forgot"><div class="chip selected">沒有</div><div class="chip">有，忘記帶了</div></div>
-      <div id="forgot-input-area" style="display:none;margin-top:8px">
-        <input class="text-input" type="text" id="forgot-what" placeholder="忘記帶了什麼？">
-      </div>
-      <div class="field-label">今天是否收到老師的反應</div>
-      <div class="chips" id="chips-teacher"><div class="chip selected">沒有</div><div class="chip">有</div></div>
-      <div class="hidden-block" id="teacher-block">
+
+      <div id="school-block" style="display: block;">
+        <div class="field-label">放學時的心情</div>
+        <div class="chips" id="chips-mood"><div class="chip">愉快</div><div class="chip selected">普通</div><div class="chip">不佳</div></div>
+        <div class="add-chip-row">
+          <input type="text" placeholder="新增心情..." id="add-mood-input">
+          <button onclick="addGlobalOpt(&#39;mood&#39;,&#39;add-mood-input&#39;,refreshMood)">新增</button>
+        </div>
+        <div class="field-label">有沒有忘記帶東西</div>
+        <div class="chips" id="chips-forgot"><div class="chip selected">沒有</div><div class="chip">有，忘記帶了</div></div>
+        <div id="forgot-input-area" style="display:none;margin-top:8px">
+          <input class="text-input" type="text" id="forgot-what" placeholder="忘記帶了什麼？">
+        </div>
+        <div class="field-label">今天是否收到老師的反應</div>
+        <div class="chips" id="chips-teacher"><div class="chip selected">沒有</div><div class="chip">有</div></div>
+        <div class="hidden-block" id="teacher-block">
         <div class="field-label">事件發生時間</div>
         <input class="text-input" type="text" id="t-time" placeholder="例如：下午2點">
         <div class="field-label">事件發生地點</div>
@@ -172,21 +183,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <textarea class="text-input" id="t-child-say" rows="2" placeholder="孩子的說法..."></textarea>
         <div class="field-label">家長處理方式</div>
         <textarea class="text-input" id="t-parent-handle" rows="2" placeholder="家長的處理方式..."></textarea>
+        </div>
       </div>
     </div>
 
     <div class="section">
       <div class="section-title">寫作業狀況 <span>（可新增多筆）</span></div>
-      <div id="hw-list"><div class="repeatable-item"><button class="remove-btn" onclick="removeHW(0)">✕</button>
-      <div class="field-label">作業項目（單選）</div><div class="chips" id="hwi-0"><div class="chip">甲乙本</div><div class="chip">語詞半行</div><div class="chip">抄寫短文</div><div class="chip">國作</div></div>
-      <div class="add-chip-row"><input type="text" placeholder="新增作業項目..." id="ahwi-0"><button onclick="addHWItemCust(0)">新增</button></div>
-      <div class="field-label">作業花費時間</div>
-      <div class="duration-row"><input type="number" min="0" value="" placeholder="0" oninput="state.hw[0].doneMin=this.value"><span>分鐘</span></div>
-      <div class="field-label">專注度</div><div class="stars" id="stars-0"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
-      <div class="field-label">提醒次數</div>
-      <div class="duration-row"><input type="number" value="0" min="0" oninput="state.hw[0].reminders=this.value"><span>次</span></div>
-      <div class="field-label">情緒和行為（可多選）</div><div class="chips" id="hwe-0"><div class="chip">愉快</div><div class="chip">平穩</div><div class="chip">煩躁</div><div class="chip">抗拒</div><div class="chip">爆炸</div><div class="chip">動來動去</div><div class="chip">離開座位</div></div>
-      <div class="add-chip-row"><input type="text" placeholder="新增情緒/行為..." id="ahwe-0"><button onclick="addHWEmoCust(0)">新增</button></div></div></div>
+      <div id="hw-list"></div>
       <button class="add-block-btn" onclick="addHW()">＋ 新增作業紀錄</button>
     </div>
 
@@ -375,13 +378,25 @@ function refreshDrug(){
   getCust('drug').forEach(opt=>c.appendChild(makeCustomChip(opt,state.drug.includes(opt),()=>{const i=state.drug.indexOf(opt);if(i>-1)state.drug.splice(i,1);else state.drug.push(opt);refreshDrug();},()=>removeGlobalOpt('drug',opt,refreshDrug))));
 }
 function refreshMood(){
+  // school mood
   const c=document.getElementById('chips-mood');c.innerHTML='';
   getDef('mood').forEach(opt=>c.appendChild(makeChip(opt,state.mood===opt,()=>{state.mood=opt;refreshMood();})));
   getCust('mood').forEach(opt=>c.appendChild(makeCustomChip(opt,state.mood===opt,()=>{state.mood=opt;refreshMood();},()=>removeGlobalOpt('mood',opt,refreshMood))));
+  // holiday mood (same options, same state.mood)
+  const ch=document.getElementById('chips-mood-holiday');if(!ch)return;ch.innerHTML='';
+  getDef('mood').forEach(opt=>ch.appendChild(makeChip(opt,state.mood===opt,()=>{state.mood=opt;refreshMood();})));
+  getCust('mood').forEach(opt=>ch.appendChild(makeCustomChip(opt,state.mood===opt,()=>{state.mood=opt;refreshMood();},()=>removeGlobalOpt('mood',opt,refreshMood))));
+}
+function updateSchoolHolidayBlocks(){
+  const isHoliday=state.schoolDay==='放假';
+  const noSelect=!state.schoolDay;
+  document.getElementById('holiday-block').style.display=isHoliday?'block':'none';
+  document.getElementById('school-block').style.display=(!isHoliday&&!noSelect)?'block':'none';
 }
 function initStaticChips(){
   const sdc=document.getElementById('chips-school-day');sdc.innerHTML='';
-  ['整天','半天'].forEach(opt=>sdc.appendChild(makeChip(opt,state.schoolDay===opt,()=>{state.schoolDay=opt;initStaticChips();})));
+  ['整天','半天','放假'].forEach(opt=>sdc.appendChild(makeChip(opt,state.schoolDay===opt,()=>{state.schoolDay=opt;updateSchoolHolidayBlocks();initStaticChips();})));
+  updateSchoolHolidayBlocks();
   const fc=document.getElementById('chips-forgot');fc.innerHTML='';
   ['沒有','有，忘記帶了'].forEach(opt=>{
     const yes=opt==='有，忘記帶了';
@@ -477,7 +492,7 @@ function saveRecord(){
 }
 
 function renderAll(){
-  refreshMed();refreshDrug();refreshMood();initStaticChips();renderHW();renderSpecial();renderPractice();
+  refreshMed();refreshDrug();refreshMood();initStaticChips();updateSchoolHolidayBlocks();renderHW();renderSpecial();renderPractice();
   document.getElementById('forgot-what').value=state.forgotWhat||'';
   document.getElementById('forgot-input-area').style.display=state.forgotYes?'block':'none';
   document.getElementById('teacher-block').classList.toggle('show',state.teacherYes);
