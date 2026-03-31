@@ -108,11 +108,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 <div class="app">
-  <div class="sidebar" id="sidebar"><div class="sidebar-title">日誌</div><div class="day-btn has-data active" title="2026-03-29"><span>3/29</span></div></div>
+  <div class="sidebar" id="sidebar"><div class="sidebar-title">日誌</div><div class="day-btn has-data" title="2026-03-29"><span>3/29</span></div></div>
   <div class="main">
 
     <div class="header">
-      <h1>神經多樣化兒童觀察日誌</h1>
+      <h1>神經多樣性｜兒童觀察日誌</h1>
       <div class="maker">— 木木的陪伴室 製作 —</div>
       <div class="date-row">
         <input type="date" id="rec-date">
@@ -129,7 +129,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="section">
       <div class="section-title">保健食品 / 藥物</div>
       <div class="field-label">今日有無補充（可多選）</div>
-      <div class="chips" id="chips-med"><div class="chip selected">魚油</div><div class="chip">GABA</div><div class="chip">鋅錠</div><div class="chip">綜合維他命</div></div>
+      <div class="chips" id="chips-med"><div class="chip">魚油</div><div class="chip">GABA</div><div class="chip">鋅錠</div><div class="chip">綜合維他命</div></div>
       <div class="add-chip-row">
         <input type="text" placeholder="新增補充品..." id="add-med-input">
         <button onclick="addGlobalOpt(&#39;med&#39;,&#39;add-med-input&#39;,refreshMed)">新增</button>
@@ -145,20 +145,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="section">
       <div class="section-title">今日紀錄</div>
       <div class="field-label">今天</div>
-      <div class="chips" id="chips-school-day"><div class="chip selected">整天</div><div class="chip">半天</div><div class="chip">放假</div></div>
+      <div class="chips" id="chips-school-day"><div class="chip">整天</div><div class="chip">半天</div><div class="chip">放假</div></div>
 
       <div id="holiday-block" style="display:none">
         <div class="field-label">今天的心情</div>
-        <div class="chips" id="chips-mood-holiday"><div class="chip">愉快</div><div class="chip selected">普通</div><div class="chip">不佳</div></div>
+        <div class="chips" id="chips-mood-holiday"><div class="chip">愉快</div><div class="chip">普通</div><div class="chip">不佳</div></div>
         <div class="add-chip-row">
           <input type="text" placeholder="新增心情..." id="add-mood-h-input">
           <button onclick="addGlobalOpt(&#39;mood&#39;,&#39;add-mood-h-input&#39;,refreshMood)">新增</button>
         </div>
       </div>
 
-      <div id="school-block" style="display: block;">
+      <div id="school-block" style="display: none;">
         <div class="field-label">放學時的心情</div>
-        <div class="chips" id="chips-mood"><div class="chip">愉快</div><div class="chip selected">普通</div><div class="chip">不佳</div></div>
+        <div class="chips" id="chips-mood"><div class="chip">愉快</div><div class="chip">普通</div><div class="chip">不佳</div></div>
         <div class="add-chip-row">
           <input type="text" placeholder="新增心情..." id="add-mood-input">
           <button onclick="addGlobalOpt(&#39;mood&#39;,&#39;add-mood-input&#39;,refreshMood)">新增</button>
@@ -189,7 +189,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <div class="section">
       <div class="section-title">寫作業狀況 <span>（可新增多筆）</span></div>
-      <div id="hw-list"></div>
+      <div id="hw-list"><div class="repeatable-item"><button class="remove-btn" onclick="removeHW(0)">✕</button>
+      <div class="field-label">作業項目（單選）</div><div class="chips" id="hwi-0"><div class="chip">甲乙本</div><div class="chip">語詞半行</div><div class="chip">抄寫短文</div><div class="chip">國作</div></div>
+      <div class="add-chip-row"><input type="text" placeholder="新增作業項目..." id="ahwi-0"><button onclick="addHWItemCust(0)">新增</button></div>
+      <div class="field-label">作業花費時間</div>
+      <div class="duration-row"><input type="number" min="0" value="" placeholder="0" oninput="state.hw[0].doneMin=this.value"><span>分鐘</span></div>
+      <div class="field-label">專注度</div><div class="stars" id="stars-0"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+      <div class="field-label">提醒次數</div>
+      <div class="duration-row"><input type="number" value="0" min="0" oninput="state.hw[0].reminders=this.value"><span>次</span></div>
+      <div class="field-label">情緒和行為（可多選）</div><div class="chips" id="hwe-0"><div class="chip">愉快</div><div class="chip">平穩</div><div class="chip">煩躁</div><div class="chip">抗拒</div><div class="chip">爆炸</div><div class="chip">動來動去</div><div class="chip">離開座位</div></div>
+      <div class="add-chip-row"><input type="text" placeholder="新增情緒/行為..." id="ahwe-0"><button onclick="addHWEmoCust(0)">新增</button></div></div></div>
       <button class="add-block-btn" onclick="addHW()">＋ 新增作業紀錄</button>
     </div>
 
@@ -589,9 +598,26 @@ function init(){
   document.getElementById('rec-time').value=`${pad(now.getHours())}:${pad(now.getMinutes())}`;
   state.recDate=today;
   renderChildTabs();
+  // 只有今天已有紀錄才載入，否則永遠開新頁
   const r=getChildRecords(currentChildId);
-  if(r[today]){loadRecord(today);}else{renderAll();addHW();}
+  if(r[today]){loadRecord(today);}else{resetState();state.recDate=today;renderAll();addHW();}
 }
+
+// 每分鐘檢查是否跨日，若跨日自動切換到新的一頁
+let _lastDate=(()=>{const n=new Date();const p=v=>String(v).padStart(2,'0');return`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`;})();
+setInterval(()=>{
+  const now=new Date();const pad=v=>String(v).padStart(2,'0');
+  const today=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  if(today!==_lastDate){
+    _lastDate=today;
+    document.getElementById('rec-date').value=today;
+    document.getElementById('rec-time').value=`${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    resetState();state.recDate=today;
+    renderAll();addHW();
+    showToast('新的一天開始了！');
+  }
+},60000);
+
 init();
 </script>
 
