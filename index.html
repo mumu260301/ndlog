@@ -191,9 +191,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
 
     <div class="section">
-      <div class="section-title">寫作業狀況 <span>（可新增多筆）</span></div>
-      <div id="hw-list"></div>
-      <button class="add-block-btn" onclick="addHW()">＋ 新增作業紀錄</button>
+      <div class="collapsible-header" onclick="toggleCollapse('hw-body','hw-icon')">
+        <div class="section-title" style="margin:0">寫作業狀況 <span>（可新增多筆）</span></div>
+        <span id="hw-icon" style="font-size:12px;color:var(--warm-muted)">▼</span>
+      </div>
+      <div class="collapsible-body collapsed" id="hw-body">
+        <div id="hw-list" style="margin-top:10px"></div>
+        <button class="add-block-btn" onclick="addHW()">＋ 新增作業紀錄</button>
+      </div>
     </div>
 
     <div class="section">
@@ -215,9 +220,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="add-block-btn" onclick="addPractice()">＋ 新增練習紀錄</button>
     </div>
 
-    <div class="section">
-      <div class="section-title">今日亮點 ✦ <span>（必填）</span></div>
-      <textarea class="text-input" id="highlight" rows="3" placeholder="今天有什麼進步、小成功、好表現？記錄下來，也要告訴孩子喔！"></textarea>
+    <div class="section" style="background:#fdf8ee;border-color:#f0d48a">
+      <div class="section-title" style="color:#9a6e1a">今日亮點 ✦ <span style="color:#b8860b;font-weight:400;font-size:11px">（必填）</span></div>
+      <textarea class="text-input" id="highlight" rows="3" placeholder="哪怕很小，也值得被記下來" style="background:#fef4d6;border-color:#f0d48a;color:#7a5a10"></textarea>
     </div>
 
     <hr class="divider">
