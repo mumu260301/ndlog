@@ -556,7 +556,7 @@ function renderStatsContent(r,from,to){
       if(hw.reminders!==''&&hw.reminders!==undefined){tRemind+=Number(hw.reminders);nRemind++;}
       if(hw.doneMin!==''&&hw.doneMin!==undefined){tMin+=Number(hw.doneMin);nMin++;}
     });
-    rows.push({date:k,mood:rec.mood||'-',schoolDay:rec.schoolDay||'-',highlight:(rec.highlight||'-').slice(0,20),focus:rec.hw&&rec.hw.length?rec.hw.map(h=>h.focus||0).join(','):'-'});
+    rows.push({date:k,mood:rec.mood||'-',schoolDay:rec.schoolDay||'-',highlight:(rec.highlight||'-').slice(0,20),hasSpecial:rec.special&&rec.special.length>0});
   });
   const maxMood=Math.max(...Object.values(moodCount),1);
   const childName=(children.find(c=>c.id===currentChildId)||{}).name||'';
@@ -570,8 +570,8 @@ function renderStatsContent(r,from,to){
     <div><div style="font-size:11px;color:var(--warm-muted)">平均作業時間</div><div style="font-size:22px;font-weight:500;color:var(--warm-accent)">${nMin?Math.round(tMin/nMin):'-'} <span style="font-size:13px">分</span></div></div>
   </div></div>
   <div class="stat-card"><h3>每日記錄總覽</h3><div style="overflow-x:auto"><table class="stat-table">
-    <tr><th>日期</th><th>上學</th><th>心情</th><th>專注</th><th>今日亮點</th></tr>
-    ${rows.map(row=>`<tr><td>${row.date}</td><td>${row.schoolDay}</td><td>${row.mood}</td><td>${row.focus}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${row.highlight}</td></tr>`).join('')}
+    <tr><th>日期</th><th>上學</th><th>心情</th><th>狀況</th><th>今日亮點</th></tr>
+    ${[...rows].reverse().map(row=>`<tr><td>${row.date}</td><td>${row.schoolDay}</td><td>${row.mood}</td><td style="text-align:center">${row.hasSpecial?'★':''}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${row.highlight}</td></tr>`).join('')}
   </table></div></div>`;
 }
 
