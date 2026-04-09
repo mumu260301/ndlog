@@ -525,12 +525,50 @@ function renderSidebar(){
   const sb=document.getElementById('sidebar');
   const title=sb.querySelector('.sidebar-title');sb.innerHTML='';sb.appendChild(title);
   const r=getChildRecords(currentChildId);
-  Object.keys(r).sort().reverse().forEach(k=>{
-    const btn=document.createElement('div');
-    btn.className='day-btn has-data'+(k===state.recDate?' active':'');
-    const d=new Date(k+'T00:00:00');
-    btn.innerHTML=`<span>${d.getMonth()+1}/${d.getDate()}</span>`;
-    btn.title=k;btn.onclick=()=>loadRecord(k);sb.appendChild(btn);
+  const keys=Object.keys(r).sort().reverse();
+  if(!keys.length)return;
+  // group by year-month
+  const groups={};
+  keys.forEach(k=>{
+    const ym=k.slice(0,7);
+    if(!groups[ym])groups[ym]=[];
+    groups[ym].push(k);
+  });
+  // saved collapsed state per month
+  if(!window._sbCollapsed)window._sbCollapsed={};
+  Object.keys(groups).sort().reverse().forEach(ym=>{
+    const d=new Date(ym+'-01T00:00:00');
+    const mLabel=(d.getMonth()+1)+'月';
+    const isCollapsed=window._sbCollapsed[ym]!==false; // default collapsed except current month
+    const currentYM=state.recDate?state.recDate.slice(0,7):'';
+    const collapsed=ym===currentYM?false:(window._sbCollapsed[ym]!==undefined?window._sbCollapsed[ym]:true);
+
+    // month header
+    const hdr=document.createElement('div');
+    hdr.style.cssText='width:36px;text-align:center;font-size:9px;color:var(--warm-accent2);cursor:pointer;padding:4px 0 2px;border-bottom:1px solid var(--warm-border);margin-bottom:2px;user-select:none;font-weight:500';
+    hdr.textContent=collapsed?mLabel+'＋':mLabel+'－';
+    hdr.title=collapsed?'展開':'收合';
+    const groupEl=document.createElement('div');
+    groupEl.style.cssText='display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:6px;overflow:hidden';
+    groupEl.style.display=collapsed?'none':'flex';
+
+    hdr.onclick=()=>{
+      const nowCollapsed=groupEl.style.display==='none';
+      groupEl.style.display=nowCollapsed?'flex':'none';
+      hdr.textContent=nowCollapsed?mLabel+'－':mLabel+'＋';
+      window._sbCollapsed[ym]=!nowCollapsed;
+    };
+    sb.appendChild(hdr);
+    sb.appendChild(groupEl);
+
+    groups[ym].forEach(k=>{
+      const btn=document.createElement('div');
+      btn.className='day-btn has-data'+(k===state.recDate?' active':'');
+      const dd=new Date(k+'T00:00:00');
+      btn.innerHTML=`<span>${dd.getDate()}日</span>`;
+      btn.title=k;btn.onclick=()=>loadRecord(k);
+      groupEl.appendChild(btn);
+    });
   });
 }
 
@@ -569,9 +607,9 @@ function renderStatsContent(r,from,to){
     <div><div style="font-size:11px;color:var(--warm-muted)">平均提醒次數</div><div style="font-size:22px;font-weight:500;color:var(--warm-accent)">${nRemind?Math.round(tRemind/nRemind*10)/10:'-'} <span style="font-size:13px">次</span></div></div>
     <div><div style="font-size:11px;color:var(--warm-muted)">平均作業時間</div><div style="font-size:22px;font-weight:500;color:var(--warm-accent)">${nMin?Math.round(tMin/nMin):'-'} <span style="font-size:13px">分</span></div></div>
   </div></div>
-  <div class="stat-card"><h3>每日記錄總覽</h3><div style="overflow-x:auto"><table class="stat-table">
+  <div class="stat-card"><h3>每日記錄總覽 <span style="font-size:10px;color:var(--warm-muted);font-weight:400">最近兩週</span></h3><div style="overflow-x:auto"><table class="stat-table">
     <tr><th>日期</th><th>上學</th><th>心情</th><th>狀況</th><th>今日亮點</th></tr>
-    ${[...rows].reverse().map(row=>`<tr><td>${row.date}</td><td>${row.schoolDay}</td><td>${row.mood}</td><td style="text-align:center">${row.hasSpecial?'★':''}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${row.highlight}</td></tr>`).join('')}
+    ${[...rows].reverse().slice(0,14).map(row=>`<tr><td>${row.date}</td><td>${row.schoolDay}</td><td>${row.mood}</td><td style="text-align:center">${row.hasSpecial?'★':''}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${row.highlight}</td></tr>`).join('')}
   </table></div></div>`;
 }
 
