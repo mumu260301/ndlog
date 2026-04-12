@@ -248,9 +248,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <h2>統計 / 匯出</h2>
     <div class="export-row">
       <span style="font-size:12px;color:var(--warm-muted)">日期範圍：</span>
-      <input type="date" id="exp-from">
+      <input type="date" id="exp-from" onchange="onStatsDateChange()">
       <span style="font-size:12px;color:var(--warm-muted)">～</span>
-      <input type="date" id="exp-to">
+      <input type="date" id="exp-to" onchange="onStatsDateChange()">
       <button onclick="exportCSV()">匯出 CSV</button>
     </div>
     <div id="stats-content"></div>
@@ -575,11 +575,24 @@ function renderSidebar(){
 function showStats(){
   const r=getChildRecords(currentChildId);const keys=Object.keys(r).sort();
   if(!keys.length){showToast('尚無日誌資料');return;}
-  document.getElementById('exp-from').value=keys[0];document.getElementById('exp-to').value=keys[keys.length-1];
-  renderStatsContent(r,keys[0],keys[keys.length-1]);
+  // default: last 14 days
+  const now=new Date();const pad=v=>String(v).padStart(2,'0');
+  const toDate=keys[keys.length-1];
+  const fromD=new Date(toDate+'T00:00:00');fromD.setDate(fromD.getDate()-13);
+  const fromDate=`${fromD.getFullYear()}-${pad(fromD.getMonth()+1)}-${pad(fromD.getDate())}`;
+  const from=keys.find(k=>k>=fromDate)||keys[0];
+  document.getElementById('exp-from').value=from;
+  document.getElementById('exp-to').value=toDate;
+  renderStatsContent(r,from,toDate);
   document.getElementById('stats-panel').classList.add('show');
 }
 function hideStats(){document.getElementById('stats-panel').classList.remove('show')}
+function onStatsDateChange(){
+  const r=getChildRecords(currentChildId);
+  const from=document.getElementById('exp-from').value;
+  const to=document.getElementById('exp-to').value;
+  if(from&&to&&from<=to)renderStatsContent(r,from,to);
+}
 function renderStatsContent(r,from,to){
   const keys=Object.keys(r).filter(k=>k>=from&&k<=to).sort();
   const box=document.getElementById('stats-content');
