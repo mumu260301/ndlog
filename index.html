@@ -5,6 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<meta name="ndlog-version" content="v1.5">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ndlog</title>
 <style>
@@ -236,7 +237,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="btn-save" onclick="saveRecord()">儲存今日日誌</button>
       <button class="btn-stats" onclick="showStats()">📊 統計</button>
     </div>
-    <p class="footer-note">資料儲存於您的瀏覽器本機端，請定期匯出CSV備份</p>
+    <p class="footer-note">資料儲存於您的瀏覽器本機端，請定期匯出CSV備份<br><span style="font-size:10px;opacity:.6">v1.5</span></p>
   </div>
 </div>
 
@@ -597,33 +598,61 @@ function renderStatsContent(r,from,to){
   const keys=Object.keys(r).filter(k=>k>=from&&k<=to).sort();
   const box=document.getElementById('stats-content');
   if(!keys.length){box.innerHTML='<p style="font-size:12px;color:var(--warm-muted)">此範圍無資料</p>';return;}
-  const moodCount={},medCount={};let tFocus=0,nFocus=0,tRemind=0,nRemind=0,tMin=0,nMin=0;const rows=[];
+  const moodCount={},medCount={},emotionCount={};
+  let tFocus=0,nFocus=0,tRemind=0,nRemind=0,tMin=0,nMin=0;
+  let nSpecial=0,nTeacher=0,nForgot=0;
+  const rows=[];
   keys.forEach(k=>{
     const rec=r[k];
     if(rec.mood)moodCount[rec.mood]=(moodCount[rec.mood]||0)+1;
     (rec.med||[]).forEach(m=>{medCount[m]=(medCount[m]||0)+1;});
+    if(rec.special&&rec.special.length>0)nSpecial++;
+    if(rec.teacherYes)nTeacher++;
+    if(rec.forgotYes)nForgot++;
     (rec.hw||[]).forEach(hw=>{
       if(hw.focus){tFocus+=hw.focus;nFocus++;}
       if(hw.reminders!==''&&hw.reminders!==undefined){tRemind+=Number(hw.reminders);nRemind++;}
       if(hw.doneMin!==''&&hw.doneMin!==undefined){tMin+=Number(hw.doneMin);nMin++;}
+      (hw.emotions||[]).forEach(e=>{emotionCount[e]=(emotionCount[e]||0)+1;});
     });
     rows.push({date:k,mood:rec.mood||'-',schoolDay:rec.schoolDay||'-',highlight:(rec.highlight||'-').slice(0,20),hasSpecial:rec.special&&rec.special.length>0});
   });
+  const n=keys.length;
   const maxMood=Math.max(...Object.values(moodCount),1);
+  const maxEmo=Math.max(...Object.values(emotionCount),1);
+  const pct=v=>n>0?Math.round(v/n*100):0;
   const childName=(children.find(c=>c.id===currentChildId)||{}).name||'';
-  box.innerHTML=`
-  <p style="font-size:12px;color:var(--warm-muted);margin-bottom:10px">孩子：${childName}｜共 ${keys.length} 天</p>
-  <div class="stat-card"><h3>放學心情統計</h3>${Object.entries(moodCount).map(([k,v])=>`<div class="bar-row"><div class="bar-label">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/maxMood*100)}%"></div></div><div class="bar-count">${v}</div></div>`).join('')||'<p style="font-size:12px;color:var(--warm-muted)">無資料</p>'}</div>
-  <div class="stat-card"><h3>保健食品使用次數</h3>${Object.entries(medCount).map(([k,v])=>`<div class="bar-row"><div class="bar-label" style="min-width:80px">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/keys.length*100)}%"></div></div><div class="bar-count">${v}</div></div>`).join('')||'<p style="font-size:12px;color:var(--warm-muted)">無資料</p>'}</div>
-  <div class="stat-card"><h3>作業概況平均</h3><div style="display:flex;gap:20px;flex-wrap:wrap">
-    <div><div style="font-size:11px;color:var(--warm-muted)">平均專注度</div><div style="font-size:22px;font-weight:500;color:var(--warm-accent)">${nFocus?Math.round(tFocus/nFocus*10)/10:'-'} <span style="font-size:13px">★</span></div></div>
-    <div><div style="font-size:11px;color:var(--warm-muted)">平均提醒次數</div><div style="font-size:22px;font-weight:500;color:var(--warm-accent)">${nRemind?Math.round(tRemind/nRemind*10)/10:'-'} <span style="font-size:13px">次</span></div></div>
-    <div><div style="font-size:11px;color:var(--warm-muted)">平均作業時間</div><div style="font-size:22px;font-weight:500;color:var(--warm-accent)">${nMin?Math.round(tMin/nMin):'-'} <span style="font-size:13px">分</span></div></div>
-  </div></div>
-  <div class="stat-card"><h3>每日記錄總覽 <span style="font-size:10px;color:var(--warm-muted);font-weight:400">最近兩週</span></h3><div style="overflow-x:auto"><table class="stat-table">
-    <tr><th>日期</th><th>上學</th><th>心情</th><th>狀況</th><th>今日亮點</th></tr>
-    ${[...rows].reverse().slice(0,14).map(row=>`<tr><td>${row.date}</td><td>${row.schoolDay}</td><td>${row.mood}</td><td style="text-align:center">${row.hasSpecial?'★':''}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${row.highlight}</td></tr>`).join('')}
-  </table></div></div>`;
+  const mc=(label,val,sub)=>'<div style="background:var(--warm-light);border-radius:10px;padding:10px 12px;flex:1;min-width:70px"><div style="font-size:10px;color:var(--warm-muted);margin-bottom:4px">'+label+'</div><div style="font-size:20px;font-weight:500;color:var(--warm-accent);line-height:1">'+val+'</div><div style="font-size:10px;color:var(--warm-muted);margin-top:3px">'+sub+'</div></div>';
+  const bar=(label,v,max,countStr)=>'<div class="bar-row"><div class="bar-label" style="min-width:80px">'+label+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(v/max*100)+'%"></div></div><div class="bar-count">'+countStr+'</div></div>';
+  const emoHtml=Object.keys(emotionCount).length
+    ? Object.entries(emotionCount).sort((a,b)=>b[1]-a[1]).map(([k,v])=>bar(k,v,maxEmo,v+'次')).join('')
+    : '<p style="font-size:12px;color:var(--warm-muted)">尚無情緒行為資料</p>';
+  box.innerHTML=
+  '<p style="font-size:12px;color:var(--warm-muted);margin-bottom:12px">孩子：'+childName+'｜共 '+n+' 天</p>'
+  +'<div class="stat-card"><h3>重點事件頻率</h3>'
+  +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'
+  +mc('特別狀況',nSpecial+'次',n+'天中'+pct(nSpecial)+'%')
+  +mc('老師反應',nTeacher+'次',n+'天中'+pct(nTeacher)+'%')
+  +mc('忘記帶東西',nForgot+'次',n+'天中'+pct(nForgot)+'%')
+  +'</div>'
+  +'<div style="font-size:11px;color:var(--warm-muted);margin-bottom:6px">情緒行為出現次數</div>'
+  +emoHtml+'</div>'
+  +'<div class="stat-card"><h3>心情統計（'+n+'天）</h3>'
+  +( Object.entries(moodCount).map(([k,v])=>bar(k,v,maxMood,v+'天')).join('') || '<p style="font-size:12px;color:var(--warm-muted)">無資料</p>' )
+  +'</div>'
+  +'<div class="stat-card"><h3>保健食品使用次數</h3>'
+  +( Object.entries(medCount).map(([k,v])=>bar(k,v,n||1,v+'次')).join('') || '<p style="font-size:12px;color:var(--warm-muted)">無資料</p>' )
+  +'</div>'
+  +'<div class="stat-card"><h3>作業概況平均</h3><div style="display:flex;gap:8px;flex-wrap:wrap">'
+  +mc('平均專注度', nFocus?Math.round(tFocus/nFocus*10)/10+'★':'-', '')
+  +mc('平均提醒', nRemind?Math.round(tRemind/nRemind*10)/10+'次':'-', '')
+  +mc('平均作業', nMin?Math.round(tMin/nMin)+'分':'-', '')
+  +'</div></div>'
+  +'<div class="stat-card"><h3>每日記錄總覽 <span style="font-size:10px;color:var(--warm-muted);font-weight:400">最近兩週</span></h3>'
+  +'<div style="overflow-x:auto"><table class="stat-table">'
+  +'<tr><th>日期</th><th>上學</th><th>心情</th><th>狀況</th><th>今日亮點</th></tr>'
+  +[...rows].reverse().slice(0,14).map(row=>'<tr><td>'+row.date+'</td><td>'+row.schoolDay+'</td><td>'+row.mood+'</td><td style="text-align:center">'+(row.hasSpecial?'★':'')+'</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+row.highlight+'</td></tr>').join('')
+  +'</table></div></div>';
 }
 
 function exportCSV(){
