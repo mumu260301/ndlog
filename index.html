@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="ndlog-version" content="v1.7">
+<meta name="ndlog-version" content="v1.8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ndlog</title>
 <style>
@@ -18,8 +18,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   --warm-red:#c46a6a;--warm-yellow:#d4a852;
 }
 .app{display:flex;min-height:100vh;background:var(--warm-bg)}
-.sidebar{width:52px;background:var(--warm-light);border-right:1px solid var(--warm-border);display:flex;flex-direction:column;align-items:center;padding:8px 4px;gap:4px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
-.sidebar-title{writing-mode:vertical-rl;font-size:10px;color:var(--warm-muted);margin-bottom:4px;letter-spacing:1px}
+.sidebar{width:52px;background:var(--warm-light);border-right:1px solid var(--warm-border);display:flex;flex-direction:column;align-items:center;padding:8px 4px 8px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow:hidden}
+.sidebar-title{writing-mode:vertical-rl;font-size:10px;color:var(--warm-muted);margin-bottom:6px;letter-spacing:1px;flex-shrink:0}
+.sidebar-scroll{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;scrollbar-width:none}
+.sidebar-scroll::-webkit-scrollbar{display:none}
 .day-btn{width:36px;min-height:36px;border-radius:8px;border:1px solid var(--warm-border);background:var(--warm-card);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:9px;color:var(--warm-text2);line-height:1.2;transition:all .15s;padding:3px 2px}
 .day-btn:hover,.day-btn.active{background:var(--warm-accent);color:#fff;border-color:var(--warm-accent)}
 .day-btn.has-data{border-color:var(--warm-accent);color:var(--warm-accent2)}
@@ -112,7 +114,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 <div class="app">
-  <div class="sidebar" id="sidebar"><div class="sidebar-title">日誌</div></div>
+  <div class="sidebar" id="sidebar"><div class="sidebar-title">日誌</div><div class="sidebar-scroll" id="sidebar-scroll"></div></div>
   <div class="main">
 
     <div class="header">
@@ -243,7 +245,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="btn-save" onclick="saveRecord()">儲存今日日誌</button>
       <button class="btn-stats" onclick="showStats()">📊 統計</button>
     </div>
-    <p class="footer-note">資料儲存於您的瀏覽器本機端，請定期匯出CSV備份<br><span style="font-size:10px;opacity:.6">v1.7</span></p>
+    <p class="footer-note">資料儲存於您的瀏覽器本機端，請定期匯出CSV備份<br><span style="font-size:10px;opacity:.6">v1.8</span></p>
   </div>
 </div>
 
@@ -587,8 +589,7 @@ function loadRecord(dateKey){
 }
 
 function renderSidebar(){
-  const sb=document.getElementById('sidebar');
-  const title=sb.querySelector('.sidebar-title');sb.innerHTML='';sb.appendChild(title);
+  const sb=document.getElementById('sidebar-scroll');sb.innerHTML='';
   const r=getChildRecords(currentChildId);
   const keys=Object.keys(r).sort().reverse();
   if(!keys.length)return;
@@ -761,15 +762,17 @@ function renderStatsContent(r,from,to){
   +'</div></div>';
 }
 function renderExportRecords(r,from,to){
-  const keys=Object.keys(r).filter(k=>k>=from&&k<=to).sort();
+  const allKeys=Object.keys(r).sort();
   const box=document.getElementById('export-records');
   if(!box)return;
-  if(!keys.length){box.innerHTML='<p style="font-size:12px;color:var(--warm-muted)">此範圍無資料</p>';return;}
-  const rows=keys.map(k=>{
+  if(!allKeys.length){box.innerHTML='<p style="font-size:12px;color:var(--warm-muted)">此範圍無資料</p>';return;}
+  // always show last 14 days
+  const last14=allKeys.slice(-14);
+  const rows=last14.map(k=>{
     const rec=r[k];
     return {date:k,mood:rec.mood||'-',schoolDay:rec.schoolDay||'-',highlight:(rec.highlight||'-').slice(0,20),hasSpecial:rec.special&&rec.special.length>0};
   });
-  box.innerHTML='<div class="stat-card"><h3>每日記錄總覽</h3>'
+  box.innerHTML='<div class="stat-card"><h3>每日記錄總覽 <span style="font-size:10px;color:var(--warm-muted);font-weight:400">最近兩週</span></h3>'
   +'<div style="overflow-x:auto"><table class="stat-table">'
   +'<tr><th>日期</th><th>上學</th><th>心情</th><th>狀況</th><th>今日亮點</th></tr>'
   +[...rows].reverse().map(row=>'<tr><td>'+row.date+'</td><td>'+row.schoolDay+'</td><td>'+row.mood+'</td><td style="text-align:center">'+(row.hasSpecial?'★':'')+'</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+row.highlight+'</td></tr>').join('')
