@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="ndlog-version" content="v1.8">
+<meta name="ndlog-version" content="v1.9">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ndlog</title>
 <style>
@@ -102,14 +102,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .bar-track{flex:1;height:10px;background:var(--warm-border);border-radius:5px;overflow:hidden}
 .bar-fill{height:100%;background:var(--warm-accent);border-radius:5px;transition:width .4s}
 .bar-count{font-size:11px;color:var(--warm-muted);min-width:20px;text-align:right}
-.stat-table{width:100%;border-collapse:collapse;font-size:12px}
-.stat-table th{text-align:left;color:var(--warm-muted);padding:5px 6px;border-bottom:1px solid var(--warm-border)}
-.stat-table td{padding:5px 6px;color:var(--warm-text2);border-bottom:1px solid var(--warm-border)}
+.stat-table{width:100%;border-collapse:collapse;font-size:11px}
+.stat-table th{text-align:left;color:var(--warm-muted);padding:4px 5px;border-bottom:1px solid var(--warm-border)}
+.stat-table td{padding:4px 5px;color:var(--warm-text2);border-bottom:1px solid var(--warm-border)}
 .duration-row{display:flex;align-items:center;gap:8px;margin-top:6px}
 .duration-row input{width:80px;border:1px solid var(--warm-border);border-radius:8px;padding:5px 10px;font-size:13px;background:var(--warm-light);color:var(--warm-text)}
 .duration-row span{font-size:13px;color:var(--warm-muted)}
 .divider{border:none;border-top:1px dashed var(--warm-border);margin:4px 0}
 .footer-note{text-align:center;font-size:11px;color:var(--warm-muted);padding-bottom:24px}
+.light-row{display:flex;gap:10px;margin:6px 0;align-items:center;flex-wrap:wrap}
+.light-btn{width:36px;height:36px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all .15s;opacity:.35;font-size:18px;display:flex;align-items:center;justify-content:center}
+.light-btn:hover{opacity:.7;transform:scale(1.08)}
+.light-btn.active{opacity:1;border-color:#fff;box-shadow:0 0 0 2px var(--warm-accent2)}
+.light-red{background:#e05555}
+.light-yellow{background:#e0b030}
+.light-green{background:#4aaa66}
+.light-label{font-size:11px;color:var(--warm-muted);margin-top:2px}
 </style>
 </head>
 <body>
@@ -121,7 +129,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <h1>神經多樣性｜兒童觀察日誌</h1>
       <div class="maker">— 木木的陪伴室 製作 —</div>
       <div class="date-row">
-        <input type="date" id="rec-date">
+        <input type="date" id="rec-date" onchange="onDateChange()">
         <input type="time" id="rec-time">
       </div>
     </div>
@@ -177,6 +185,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="field-label">今天是否收到老師的反應</div>
         <div class="chips" id="chips-teacher"></div>
         <div class="hidden-block" id="teacher-block">
+        <div class="field-label">狀態</div>
+        <div class="light-row">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div class="light-btn light-red" id="light-red" onclick="selectLight('red')" title="紅燈｜事件嚴重">🔴</div>
+            <div class="light-label">嚴重</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div class="light-btn light-yellow" id="light-yellow" onclick="selectLight('yellow')" title="黃燈｜有事件">🟡</div>
+            <div class="light-label">有事件</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div class="light-btn light-green" id="light-green" onclick="selectLight('green')" title="綠燈｜好事">🟢</div>
+            <div class="light-label">好事</div>
+          </div>
+        </div>
         <div class="field-label">事件分類（可多選）</div>
         <div class="chips" id="chips-teacher-cat"></div>
         <div class="add-chip-row">
@@ -245,7 +268,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="btn-save" onclick="saveRecord()">儲存今日日誌</button>
       <button class="btn-stats" onclick="showStats()">📊 統計</button>
     </div>
-    <p class="footer-note">資料儲存於您的瀏覽器本機端，請定期匯出CSV備份<br><span style="font-size:10px;opacity:.6">v1.8</span></p>
+    <p class="footer-note">資料儲存於您的瀏覽器本機端，請定期匯出CSV備份<br><span style="font-size:10px;opacity:.6">v1.9</span></p>
   </div>
 </div>
 
@@ -269,7 +292,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div id="tab-export" style="display:none">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-        <span style="font-size:12px;color:var(--warm-muted)">日期範圍：</span>
+        <span style="font-size:12px;color:var(--warm-muted)">匯出範圍：</span>
         <input type="date" id="exp-from2" onchange="onExportDateChange()" style="border:1px solid var(--warm-border);border-radius:8px;padding:4px 8px;font-size:12px;background:var(--warm-light);color:var(--warm-text)">
         <span style="font-size:12px;color:var(--warm-muted)">～</span>
         <input type="date" id="exp-to2" onchange="onExportDateChange()" style="border:1px solid var(--warm-border);border-radius:8px;padding:4px 8px;font-size:12px;background:var(--warm-light);color:var(--warm-text)">
@@ -375,7 +398,7 @@ function switchChild(){
   renderChildTabs();resetState();
   const today=document.getElementById('rec-date').value;
   const r=getChildRecords(currentChildId);
-  if(r[today])loadRecord(today);else renderAll();
+  if(r[today])loadRecord(today);else{renderAll();addHW();}
 }
 
 // Records
@@ -436,6 +459,19 @@ function updateSchoolHolidayBlocks(){
   document.getElementById('holiday-block').style.display=isHoliday?'block':'none';
   document.getElementById('school-block').style.display=(!isHoliday&&!noSelect)?'block':'none';
 }
+function selectLight(color){
+  if(!state.teacherData)state.teacherData={};
+  state.teacherData.light=state.teacherData.light===color?'':color;
+  refreshLight();
+}
+function refreshLight(){
+  const light=(state.teacherData&&state.teacherData.light)||'';
+  ['red','yellow','green'].forEach(c=>{
+    const el=document.getElementById('light-'+c);
+    if(el)el.classList.toggle('active',light===c);
+  });
+}
+// refreshTeacherLight merged into selectLight
 function refreshTeacherCat(){
   const c=document.getElementById('chips-teacher-cat');if(!c)return;c.innerHTML='';
   const cats=(state.teacherData&&state.teacherData.categories)||[];
@@ -469,7 +505,7 @@ function initStaticChips(){
 }
 
 function addHW(){state.hw.push({items:'',doneMin:'',focus:0,reminders:'',emotions:[]});renderHW();}
-function removeHW(i){state.hw.splice(i,1);renderHW();}
+function removeHW(i){state.hw.splice(i,1);renderHW();autoSave();}
 function renderHW(){
   const list=document.getElementById('hw-list');list.innerHTML='';
   state.hw.forEach((hw,i)=>{
@@ -499,7 +535,7 @@ function addHWItemCust(i){const inp=document.getElementById(`ahwi-${i}`);const v
 function addHWEmoCust(i){const inp=document.getElementById(`ahwe-${i}`);const val=inp.value.trim();if(!val)return;if(!gOpts['hw_emotion'])gOpts['hw_emotion']=[];if(!getAllOpts('hw_emotion').includes(val)){gOpts['hw_emotion'].push(val);saveGOpts();}inp.value='';renderHW();}
 
 function addPractice(){state.practice.push({item:'',minutes:'',note:''});renderPractice();}
-function removePractice(i){state.practice.splice(i,1);renderPractice();}
+function removePractice(i){state.practice.splice(i,1);renderPractice();autoSave();}
 function renderPractice(){
   const list=document.getElementById('practice-list');list.innerHTML='';
   state.practice.forEach((p,i)=>{
@@ -519,14 +555,16 @@ function renderPractice(){
 }
 function addPracticeItemCust(i){const inp=document.getElementById(`apitem-${i}`);const val=inp.value.trim();if(!val)return;if(!gOpts['practice_item'])gOpts['practice_item']=[];if(!getAllOpts('practice_item').includes(val)){gOpts['practice_item'].push(val);saveGOpts();}inp.value='';renderPractice();}
 
-function addSpecial(){state.special.push({time:'',place:'',target:'',event:'',handle:'',categories:[]});renderSpecial();}
-function removeSpecial(i){state.special.splice(i,1);renderSpecial();}
+function addSpecial(){state.special.push({time:'',place:'',target:'',event:'',handle:'',categories:[],light:''});renderSpecial();}
+function removeSpecial(i){state.special.splice(i,1);renderSpecial();autoSave();}
 function renderSpecial(){
   const list=document.getElementById('special-list');list.innerHTML='';
   state.special.forEach((sp,i)=>{
     if(!sp.categories)sp.categories=[];
     const div=document.createElement('div');div.className='repeatable-item';
     div.innerHTML=`<button class="remove-btn" onclick="removeSpecial(${i})">✕</button>
+      <div class="field-label">狀態</div>
+      <div class="light-row" id="splight-${i}"></div>
       <div class="field-label">事件分類（可多選）</div>
       <div class="chips" id="spcat-${i}"></div>
       <div class="add-chip-row">
@@ -539,6 +577,17 @@ function renderSpecial(){
       <div class="field-label">發生的事情</div><textarea class="text-input" rows="2" placeholder="事情描述..." oninput="state.special[${i}].event=this.value">${sp.event}</textarea>
       <div class="field-label">處理方式</div><textarea class="text-input" rows="2" placeholder="處理方式..." oninput="state.special[${i}].handle=this.value">${sp.handle}</textarea>`;
     list.appendChild(div);
+    // traffic light — same style as teacher block
+    const tl=document.getElementById(`splight-${i}`);
+    [{val:'red',emoji:'🔴',label:'嚴重',cls:'light-red'},{val:'yellow',emoji:'🟡',label:'有事件',cls:'light-yellow'},{val:'green',emoji:'🟢',label:'好事',cls:'light-green'}].forEach(({val,emoji,label,cls})=>{
+      const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:2px';
+      const btn=document.createElement('div');
+      btn.className='light-btn '+cls+(sp.light===val?' active':'');
+      btn.textContent=emoji;btn.title=label;
+      btn.onclick=(()=>{const v=val;return()=>{state.special[i].light=v;renderSpecial();autoSave();};})();
+      const lbl=document.createElement('div');lbl.className='light-label';lbl.textContent=label;
+      wrap.appendChild(btn);wrap.appendChild(lbl);tl.appendChild(wrap);
+    });
     const cc=document.getElementById(`spcat-${i}`);
     getDef('event_category').forEach(opt=>cc.appendChild(makeChip(opt,sp.categories.includes(opt),(()=>{const o=opt;return()=>{const idx=state.special[i].categories.indexOf(o);if(idx>-1)state.special[i].categories.splice(idx,1);else state.special[i].categories.push(o);renderSpecial();};})())))  ;
     getCust('event_category').forEach(opt=>cc.appendChild(makeCustomChip(opt,sp.categories.includes(opt),(()=>{const o=opt;return()=>{const idx=state.special[i].categories.indexOf(o);if(idx>-1)state.special[i].categories.splice(idx,1);else state.special[i].categories.push(o);renderSpecial();};})(),(()=>{const o=opt;return()=>removeEventCatOpt(o);})())));
@@ -552,12 +601,30 @@ function addSpecialCatCust(i){
 }
 
 function gatherState(){
-  state.forgotWhat=document.getElementById('forgot-what').value;
-  const prevCats=(state.teacherData&&state.teacherData.categories)||[];state.teacherData={time:document.getElementById('t-time').value,place:document.getElementById('t-place').value,target:document.getElementById('t-target').value,teacherSay:document.getElementById('t-teacher-say').value,childSay:document.getElementById('t-child-say').value,parentHandle:document.getElementById('t-parent-handle').value,categories:prevCats};
+  const isHoliday=state.schoolDay==='放假';
+  if(!isHoliday){
+    // 只有上學才抓放學相關欄位
+    state.forgotWhat=document.getElementById('forgot-what').value;
+    const prevCats=(state.teacherData&&state.teacherData.categories)||[];
+    const prevLight=(state.teacherData&&state.teacherData.light)||'';
+    state.teacherData={time:document.getElementById('t-time').value,place:document.getElementById('t-place').value,target:document.getElementById('t-target').value,teacherSay:document.getElementById('t-teacher-say').value,childSay:document.getElementById('t-child-say').value,parentHandle:document.getElementById('t-parent-handle').value,categories:prevCats,light:prevLight};
+  } else {
+    // 放假時清空放學相關欄位
+    state.forgotYes=false;
+    state.forgotWhat='';
+    state.teacherYes=false;
+    state.teacherData={};
+  }
   state.highlight=document.getElementById('highlight').value;
   state.strategy=document.getElementById('strategy').value;
   state.recDate=document.getElementById('rec-date').value;
   state.recTime=document.getElementById('rec-time').value;
+}
+function autoSave(){
+  // silently save current state if recDate exists
+  if(!state.recDate)return;
+  gatherState();
+  setChildRecord(currentChildId,state.recDate,JSON.parse(JSON.stringify(state)));
 }
 function saveRecord(){
   gatherState();
@@ -567,7 +634,7 @@ function saveRecord(){
 }
 
 function renderAll(){
-  refreshMed();refreshDrug();refreshMood();initStaticChips();updateSchoolHolidayBlocks();renderHW();renderSpecial();renderPractice();refreshTeacherCat();
+  refreshMed();refreshDrug();refreshMood();initStaticChips();updateSchoolHolidayBlocks();renderHW();renderSpecial();renderPractice();refreshTeacherCat();refreshLight();
   document.getElementById('forgot-what').value=state.forgotWhat||'';
   document.getElementById('forgot-input-area').style.display=state.forgotYes?'block':'none';
   document.getElementById('teacher-block').classList.toggle('show',state.teacherYes);
@@ -718,7 +785,11 @@ function renderStatsContent(r,from,to){
       if(hw.doneMin!==''&&hw.doneMin!==undefined){tMin+=Number(hw.doneMin);nMin++;}
       (hw.emotions||[]).forEach(e=>{emotionCount[e]=(emotionCount[e]||0)+1;});
     });
-    rows.push({date:k,mood:rec.mood||'-',schoolDay:rec.schoolDay||'-',highlight:(rec.highlight||'-').slice(0,20),hasSpecial:rec.special&&rec.special.length>0});
+    const spLightsS=(rec.special||[]).map(s=>s.light).filter(Boolean);
+    const spLightS=spLightsS.includes('red')?'🔴':spLightsS.includes('yellow')?'🟡':spLightsS.includes('green')?'🟢':'';
+    const tLightS=(rec.teacherData&&rec.teacherData.light)||'';
+    const feedbackLightS=tLightS==='red'?'🔴':tLightS==='yellow'?'🟡':tLightS==='green'?'🟢':'';
+    rows.push({date:k,schoolDay:rec.schoolDay||'-',highlight:(rec.highlight||'-').slice(0,20),spLight:spLightS,feedbackLight:feedbackLightS});
   });
   const n=keys.length;
   const maxMood=Math.max(...Object.values(moodCount),1);
@@ -738,6 +809,28 @@ function renderStatsContent(r,from,to){
   const emoHtml=Object.keys(emotionCount).length
     ? Object.entries(emotionCount).sort((a,b)=>b[1]-a[1]).map(([k,v])=>bar(k,v,maxEmo,v+'次')).join('')
     : '<p style="font-size:12px;color:var(--warm-muted)">尚無資料</p>';
+  // light counts — teacher + special 分開統計
+  const tLightCount={red:0,yellow:0,green:0};
+  const spLightCount={red:0,yellow:0,green:0};
+  keys.forEach(k=>{
+    const rec=r[k];
+    if(rec.teacherYes&&rec.teacherData&&rec.teacherData.light)tLightCount[rec.teacherData.light]++;
+    (rec.special||[]).forEach(s=>{if(s.light)spLightCount[s.light]++;});
+  });
+  const mkLightBadge=(count,label,bg,color)=>count?'<span style="background:'+bg+';color:'+color+';border-radius:20px;padding:3px 12px;font-size:12px">'+label+' '+count+'次</span>':'';
+  const tLightHtml='<div style="font-size:11px;color:var(--warm-muted);margin:6px 0 4px">老師反應燈號</div><div style="display:flex;gap:6px;flex-wrap:wrap">'
+    +mkLightBadge(tLightCount.red,'🔴嚴重','#fde8e8','#c44')
+    +mkLightBadge(tLightCount.yellow,'🟡有事件','#fef9e0','#996600')
+    +mkLightBadge(tLightCount.green,'🟢好事','#e8f8ee','#2a7a44')
+    +(!tLightCount.red&&!tLightCount.yellow&&!tLightCount.green?'<span style="font-size:12px;color:var(--warm-muted)">尚無資料</span>':'')
+    +'</div>';
+  const spLightHtml='<div style="font-size:11px;color:var(--warm-muted);margin:8px 0 4px">特別狀況燈號</div><div style="display:flex;gap:6px;flex-wrap:wrap">'
+    +mkLightBadge(spLightCount.red,'🔴嚴重','#fde8e8','#c44')
+    +mkLightBadge(spLightCount.yellow,'🟡有事件','#fef9e0','#996600')
+    +mkLightBadge(spLightCount.green,'🟢好事','#e8f8ee','#2a7a44')
+    +(!spLightCount.red&&!spLightCount.yellow&&!spLightCount.green?'<span style="font-size:12px;color:var(--warm-muted)">尚無資料</span>':'')
+    +'</div>';
+  const lightHtml=tLightHtml+spLightHtml;
   const catHtml=Object.keys(catCount).length
     ? Object.entries(catCount).sort((a,b)=>b[1]-a[1]).map(([k,v])=>bar(k,v,maxCat,v+'次')).join('')
     : '<p style="font-size:12px;color:var(--warm-muted)">尚無資料</p>';
@@ -749,6 +842,7 @@ function renderStatsContent(r,from,to){
   +mc('老師反應',nTeacher+'次',n+'天中'+pct(nTeacher)+'%')
   +mc('忘記帶東西',nForgot+'次',n+'天中'+pct(nForgot)+'%')
   +'</div>'
+  +lightHtml
   +'<div style="font-size:11px;color:var(--warm-muted);margin-bottom:6px">事件分類次數</div>'
   +catHtml+'</div>'
   +'<div class="stat-card"><h3>情緒行為出現次數</h3>'+emoHtml+'</div>'
@@ -770,12 +864,18 @@ function renderExportRecords(r,from,to){
   const last14=allKeys.slice(-14);
   const rows=last14.map(k=>{
     const rec=r[k];
-    return {date:k,mood:rec.mood||'-',schoolDay:rec.schoolDay||'-',highlight:(rec.highlight||'-').slice(0,20),hasSpecial:rec.special&&rec.special.length>0};
+    // 狀況 = special 燈號
+    const spLights=(rec.special||[]).map(s=>s.light).filter(Boolean);
+    const spLight=spLights.includes('red')?'🔴':spLights.includes('yellow')?'🟡':spLights.includes('green')?'🟢':'';
+    // 回饋 = teacher 燈號
+    const tLight=(rec.teacherData&&rec.teacherData.light)||'';
+    const feedbackLight=tLight==='red'?'🔴':tLight==='yellow'?'🟡':tLight==='green'?'🟢':'';
+    return {date:k,schoolDay:rec.schoolDay||'-',highlight:(rec.highlight||'-').slice(0,20),hasSpecial:rec.special&&rec.special.length>0,spLight,feedbackLight};
   });
   box.innerHTML='<div class="stat-card"><h3>每日記錄總覽 <span style="font-size:10px;color:var(--warm-muted);font-weight:400">最近兩週</span></h3>'
   +'<div style="overflow-x:auto"><table class="stat-table">'
-  +'<tr><th>日期</th><th>上學</th><th>心情</th><th>狀況</th><th>今日亮點</th></tr>'
-  +[...rows].reverse().map(row=>'<tr><td>'+row.date+'</td><td>'+row.schoolDay+'</td><td>'+row.mood+'</td><td style="text-align:center">'+(row.hasSpecial?'★':'')+'</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+row.highlight+'</td></tr>').join('')
+  +'<tr><th>日期</th><th>上學</th><th>反應</th><th>狀況</th><th>亮點</th></tr>'
+  +[...rows].reverse().map(row=>'<tr><td>'+row.date+'</td><td>'+row.schoolDay+'</td><td style="text-align:center">'+row.feedbackLight+'</td><td style="text-align:center">'+row.spLight+'</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+row.highlight+'</td></tr>').join('')
   +'</table></div></div>';
 }
 
@@ -785,11 +885,27 @@ function exportCSV(){
   const keys=Object.keys(r).filter(k=>k>=from&&k<=to).sort();
   if(!keys.length){showToast('此範圍無資料');return;}
   const childName=(children.find(c=>c.id===currentChildId)||{}).name||'';
-  const rows=[['孩子','日期','時間','保健食品','藥物','上學','心情','忘記帶東西','老師反應','事件分類','今日亮點','今後策略']];
+  const rows=[['孩子','日期','時間','保健食品','藥物','上學','心情','忘記帶東西','老師反應','老師反應燈號','老師反應分類','老師說法','孩子說法','家長處理','特別狀況數','特別狀況燈號','特別狀況分類','特別狀況描述','今日亮點','今後策略']];
   keys.forEach(k=>{
     const rec=r[k];
-    const allCats=[...(rec.special||[]).flatMap(s=>s.categories||[]),...((rec.teacherData&&rec.teacherData.categories)||[])];
-    rows.push([childName,rec.recDate||k,rec.recTime||'',(rec.med||[]).join('；'),(rec.drug||[]).join('；'),rec.schoolDay||'',rec.mood||'',rec.forgotYes?`有：${rec.forgotWhat}`:'否',rec.teacherYes?'有':'否',[...new Set(allCats)].join('；'),rec.highlight||'',rec.strategy||'']);
+    const td=rec.teacherData||{};
+    const tLightMap={red:'🔴嚴重',yellow:'🟡有事件',green:'🟢好事'};
+    const tLight=tLightMap[td.light]||'';
+    const tCats=(td.categories||[]).join('；');
+    const specials=rec.special||[];
+    const spCount=specials.length;
+    const spLights=specials.map(s=>tLightMap[s.light]||'').filter(Boolean).join('；');
+    const spCats=[...new Set(specials.flatMap(s=>s.categories||[]))].join('；');
+    const spDesc=specials.map((s,i)=>{
+      const parts=[];
+      if(s.time)parts.push('時間:'+s.time);
+      if(s.place)parts.push('地點:'+s.place);
+      if(s.target)parts.push('對象:'+s.target);
+      if(s.event)parts.push('事件:'+s.event);
+      if(s.handle)parts.push('處理:'+s.handle);
+      return parts.length?'【'+(i+1)+'】'+parts.join('、'):'';
+    }).filter(Boolean).join(' / ');
+    rows.push([childName,rec.recDate||k,rec.recTime||'',(rec.med||[]).join('；'),(rec.drug||[]).join('；'),rec.schoolDay||'',rec.mood||'',rec.forgotYes?`有：${rec.forgotWhat}`:'否',rec.teacherYes?'有':'否',tLight,tCats,td.teacherSay||'',td.childSay||'',td.parentHandle||'',spCount,spLights,spCats,spDesc,rec.highlight||'',rec.strategy||'']);
   });
   const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
@@ -825,6 +941,35 @@ function importJSON(e){
   e.target.value='';
 }
 
+function onDateChange(){
+  const newDate=document.getElementById('rec-date').value;
+  if(!newDate)return;
+  // save current state first if highlight filled
+  if(state.highlight&&state.highlight.trim()&&state.recDate&&state.recDate!==newDate){
+    gatherState();
+    setChildRecord(currentChildId,state.recDate,JSON.parse(JSON.stringify(state)));
+  }
+  // load or reset for new date
+  const r=getChildRecords(currentChildId);
+  if(r[newDate]){
+    Object.assign(state,JSON.parse(JSON.stringify(r[newDate])));
+    state.recDate=newDate;
+    document.getElementById('rec-date').value=newDate;
+    document.getElementById('rec-time').value=state.recTime||'';
+    renderAll();
+    renderSidebar();
+    showToast('已載入 '+newDate+' 的紀錄');
+  } else {
+    resetState();
+    state.recDate=newDate;
+    document.getElementById('rec-date').value=newDate;
+    const now=new Date();const pad=v=>String(v).padStart(2,'0');
+    document.getElementById('rec-time').value=`${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    renderAll();
+    addHW();
+    showToast('已切換到 '+newDate+'（新紀錄）');
+  }
+}
 function init(){
   const now=new Date();const pad=n=>String(n).padStart(2,'0');
   const today=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
